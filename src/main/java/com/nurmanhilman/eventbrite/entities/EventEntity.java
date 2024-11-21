@@ -2,6 +2,9 @@ package com.nurmanhilman.eventbrite.entities;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import lombok.Data;
 
 @Data
@@ -18,25 +21,25 @@ public class EventEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false)
+    @Column(name = "price", nullable = false)
     private Double price;
 
-    @Column(nullable = false)
-    private String date;
+    @Column(name = "date",nullable = false)
+    private LocalDate date;
 
-    @Column(nullable = false)
-    private String time;
+    @Column(name = "time", nullable = false)
+    private LocalTime time;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "location", nullable = false, length = 100)
     private String location;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "available_seats", nullable = false)

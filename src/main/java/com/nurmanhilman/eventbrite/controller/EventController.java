@@ -1,28 +1,59 @@
 package com.nurmanhilman.eventbrite.controller;
 
 import com.nurmanhilman.eventbrite.entities.EventEntity;
+import com.nurmanhilman.eventbrite.entities.UserEntity;
+import com.nurmanhilman.eventbrite.repositories.UserRepository;
 import com.nurmanhilman.eventbrite.service.EventService;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/events")
 public class EventController {
 
     private final EventService eventService;
+    private final JwtDecoder jwtDecoder;
+    private final UserRepository userRepository;
 
     @Autowired
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, JwtDecoder jwtDecoder, UserRepository userRepository) {
         this.eventService = eventService;
+        this.jwtDecoder = jwtDecoder;
+        this.userRepository = userRepository;
+    }
+
+    private boolean isOrganizer(String authorizationHeader) {
+        try {
+            // extract email from jwt
+            String token = authorizationHeader.replace("Bearer", "");
+            Jwt jwt = jwtDecoder.decode(token);
+            String email = jwt.getSubject();
+
+            // fetch user and check if they're an organizer
+            Optional<UserEntity> userOptional = userRepository.findByEmail(email);
+            return userOptional.map(UserEntity::isEventOrganizer).orElse(false);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Create a new event
     @PostMapping
-    public ResponseEntity<EventEntity> createEvent(@RequestBody EventEntity event) {
+    public ResponseEntity<?> createEvent(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody EventEntity event
+    ) {
+        if (!isOrganizer(authorizationHeader)) {
+            return ResponseEntity.status(403).body("Access denied. Only organizers can create events.");
+        }
         event.setCreatedAt(Instant.now());
         event.setUpdatedAt(Instant.now());
         EventEntity savedEvent = eventService.createEvent(event);
@@ -45,7 +76,14 @@ public class EventController {
 
     // Update an event
     @PutMapping("/{id}")
-    public ResponseEntity<EventEntity> updateEvent(@PathVariable Long id, @RequestBody EventEntity event) {
+    public ResponseEntity<?> updateEvent(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long id,
+            @RequestBody EventEntity event
+    ) {
+        if (!isOrganizer(authorizationHeader)) {
+            return ResponseEntity.status(403).body("Access denied. Only organizers can update events.");
+        }
         event.setUpdatedAt(Instant.now());
         EventEntity updatedEvent = eventService.updateEvent(id, event);
         return ResponseEntity.ok(updatedEvent);
@@ -53,7 +91,13 @@ public class EventController {
 
     // Delete an event
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
+    public ResponseEntity<?> deleteEvent(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long id
+    ) {
+        if (!isOrganizer(authorizationHeader)) {
+            return ResponseEntity.status(403).body("Access denied. Only organizers can delete events.");
+        }
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }
