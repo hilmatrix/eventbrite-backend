@@ -19,7 +19,7 @@ public class EventEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private UserEntity userId;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;

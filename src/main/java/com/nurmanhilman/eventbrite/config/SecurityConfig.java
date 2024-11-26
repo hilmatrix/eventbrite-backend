@@ -33,7 +33,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig { 
 
     private final RsaKeyConfigProperties rsaKeyConfigProperties;
 
@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/login").permitAll()
                         .requestMatchers("/api/v1/signup").permitAll()// Explicitly allow access to "/login"
                         .requestMatchers("/api/v1/events/**").permitAll()
+                        .requestMatchers("/api/v1/promotions/**").permitAll()
                         .requestMatchers("/").permitAll()  // Allow unrestricted access to "/"
                         .anyRequest().authenticated()  // Require authentication for other requests
                 )
@@ -90,3 +91,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+ 
