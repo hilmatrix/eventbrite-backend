@@ -5,6 +5,7 @@ import com.nurmanhilman.eventbrite.repositories.TrxRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +14,13 @@ import java.util.Optional;
 
 public class TrxService {
     private final TrxRepository trxRepository;
+    private final PromotionService promotionService;
 
     @Autowired
-    public TrxService(TrxRepository trxRepository) {
+    public TrxService(TrxRepository trxRepository, PromotionService promotionService) {
+
         this.trxRepository = trxRepository;
+        this.promotionService = promotionService;
     }
     public List<TrxEntity> getAllTransactions() {
         return trxRepository.findAll();
@@ -26,15 +30,24 @@ public class TrxService {
         return trxRepository.findById(trxId);
     }
 
-    public TrxEntity createTransaction(TrxEntity transaction) {
+    public TrxEntity processTransaction(TrxEntity transaction, String referralCode) {
+        if (referralCode != null) {
+            promotionService.getPromotionByReferralCode(referralCode)
+                    .ifPresent(promotion -> {
+                        BigDecimal discountedPrice = transaction.getTotalPrice().subtract(promotion.getPriceCut());
+                        transaction.setTotalPrice(discountedPrice);
+                    });
+        }
         return trxRepository.save(transaction);
     }
+//    public TrxEntity createTransaction(TrxEntity transaction) {
+//        return trxRepository.save(transaction);
+//    }
 
     public TrxEntity updateTransaction(Long trxId, TrxEntity transactionDetails) {
         return trxRepository.findById(trxId).map(transaction -> {
             transaction.setTicketAmount(transactionDetails.getTicketAmount());
             transaction.setTotalPrice(transactionDetails.getTotalPrice());
-            transaction.setReferralCodeUsed(transactionDetails.getReferralCodeUsed());
             transaction.setUpdatedAt(Instant.now());
             return trxRepository.save(transaction);
         }).orElseThrow(() -> new RuntimeException("Transaction not found with id " + trxId));

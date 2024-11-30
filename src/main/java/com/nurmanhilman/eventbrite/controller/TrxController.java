@@ -2,6 +2,7 @@ package com.nurmanhilman.eventbrite.controller;
 
 import com.nurmanhilman.eventbrite.entities.TrxEntity;
 import com.nurmanhilman.eventbrite.service.TrxService;
+import jakarta.transaction.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/api/v1/transactions")
 public class TrxController {
 
     private final TrxService transactionService;
@@ -32,8 +33,9 @@ public class TrxController {
     }
 
     @PostMapping
-    public TrxEntity createTransaction(@RequestBody TrxEntity transaction) {
-        return transactionService.createTransaction(transaction);
+    public ResponseEntity<TrxEntity> createTransaction(@RequestBody TrxEntity transaction,
+                                                         @RequestParam(required = false) String referralCode) {
+        return ResponseEntity.ok(transactionService.processTransaction(transaction, referralCode));
     }
 
     @PutMapping("/{trxId}")

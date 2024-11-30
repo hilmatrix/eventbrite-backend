@@ -28,6 +28,10 @@ public class PromotionService {
         return promotionRepository.findById(promoId);
     }
 
+    public Optional<PromotionEntity> getPromotionByReferralCode(String referralCode) {
+        return promotionRepository.findByReferralCode(referralCode);
+    }
+
     public PromotionEntity createPromotion(PromotionEntity promotion) {
         return promotionRepository.save(promotion);
     }

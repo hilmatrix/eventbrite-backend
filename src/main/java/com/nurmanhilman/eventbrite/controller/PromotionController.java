@@ -1,8 +1,10 @@
 package com.nurmanhilman.eventbrite.controller;
 
 
+import com.nurmanhilman.eventbrite.entities.EventEntity;
 import com.nurmanhilman.eventbrite.entities.PromotionEntity;
 import com.nurmanhilman.eventbrite.service.PromotionService;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/promotions")
+@RequestMapping("/api/v1/promotions")
 public class PromotionController {
 
     private final PromotionService promotionService;
@@ -21,8 +23,9 @@ public class PromotionController {
     }
 
     @GetMapping
-    public List<PromotionEntity> getAllPromotions() {
-        return promotionService.getAllPromotions();
+    public ResponseEntity<List<PromotionEntity>> getAllPromotions() {
+        List<PromotionEntity> promotions = promotionService.getAllPromotions();
+        return ResponseEntity.ok(promotions);
     }
 
     @GetMapping("/{promoId}")
