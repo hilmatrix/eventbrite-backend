@@ -33,7 +33,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig { 
+public class SecurityConfig {
 
     private final RsaKeyConfigProperties rsaKeyConfigProperties;
 
@@ -91,4 +91,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
- 

@@ -1,4 +1,4 @@
-package com.nurmanhilman.eventbrite.controller;
+package com.nurmanhilman.eventbrite.requests;
 
 import lombok.Data;
 
