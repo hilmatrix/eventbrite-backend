@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/login").permitAll()
                         .requestMatchers("/api/v1/signup").permitAll()// Explicitly allow access to "/login"
                         .requestMatchers("/api/v1/events/**").permitAll()
+                        .requestMatchers("/api/v1/promotions/**").permitAll()
                         .requestMatchers("/").permitAll()  // Allow unrestricted access to "/"
                         .anyRequest().authenticated()  // Require authentication for other requests
                 )

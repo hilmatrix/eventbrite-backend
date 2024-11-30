@@ -16,22 +16,19 @@ public class TrxEntity {
     @Column(name = "trx_id")
     private Long trxId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "event_id" , nullable= false)
-    private EventEntity event;
+    private EventEntity eventId;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id" , nullable= false)
+    private UserEntity user;
 
     @Column(name = "ticket_amount" ,nullable = false)
     private int ticketAmount;
 
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "promo_id")
-    private PromotionEntity promotion;
-
-    @Column(name = "referral_code_used")
-    private String referralCodeUsed;
 
     @Column(name = "created_at")
     private Instant createdAt;

@@ -20,9 +20,9 @@ public class PromotionEntity {
     @Column(name = "promo_id")
     private Long promoId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)
-    private EventEntity event;
+    private EventEntity eventId;
 
     @Column(name = "referral_code", nullable = false)
     private String referralCode;
