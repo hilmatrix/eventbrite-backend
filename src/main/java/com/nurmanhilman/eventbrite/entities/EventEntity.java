@@ -51,6 +51,9 @@ public class EventEntity {
     @Column(name = "is_paid_event", nullable = false)
     private Boolean isPaidEvent;
 
+    @Column(name = "category")
+    private String category;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

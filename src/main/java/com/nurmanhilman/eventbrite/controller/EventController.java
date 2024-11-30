@@ -67,6 +67,17 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    // get a list of event by filter
+    @GetMapping("/filter")
+    public ResponseEntity<List<EventEntity>> filterAndSearchEvents(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "location", required = false) String location,
+            @RequestParam(value = "description", required = false) String description) {
+
+        List<EventEntity> events = eventService.filterAndSearchEvents(name, location, description);
+        return ResponseEntity.ok(events);
+    }
+
     // Get event by ID
     @GetMapping("/{id}")
     public ResponseEntity<EventEntity> getEventById(@PathVariable Long id) {
