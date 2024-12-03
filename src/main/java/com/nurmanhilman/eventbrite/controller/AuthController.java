@@ -32,4 +32,18 @@ public class AuthController {
             return ResponseEntity.status(404).body(response);
         }
     }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody LoginRequest loginRequest) {
+        try {
+            Map<String, String> tokenResponse = authApplication.resetPassword(loginRequest);
+            return ResponseEntity.ok(tokenResponse);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> response = Map.of("result", e.getMessage());
+            return ResponseEntity.status(401).body(response);
+        } catch (RuntimeException e) {
+            Map<String, String> response = Map.of("result", e.getMessage());
+            return ResponseEntity.status(404).body(response);
+        }
+    }
 }
