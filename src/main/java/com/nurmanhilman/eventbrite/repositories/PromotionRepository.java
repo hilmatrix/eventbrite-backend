@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface PromotionRepository extends JpaRepository<PromotionEntity, Long> {
     // Custom queries if needed
-    Optional<PromotionEntity> findByReferralCode(String referralCode);
+    Optional<PromotionEntity> findByPromoCode(String referralCode);
 }
 
