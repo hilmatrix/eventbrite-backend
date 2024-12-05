@@ -1,11 +1,14 @@
 package com.nurmanhilman.eventbrite.application;
 
+import com.nurmanhilman.eventbrite.repositories.ReferralDiscountRepository;
 import com.nurmanhilman.eventbrite.requests.SignupRequest;
 import com.nurmanhilman.eventbrite.service.ReferralPointsService;
 import com.nurmanhilman.eventbrite.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import static com.nurmanhilman.eventbrite.util.AlphaNumericGenerator.generateCode;
 
 @Component
 public class SignupApplication {
@@ -18,6 +21,11 @@ public class SignupApplication {
 
     @Autowired
     private ReferralPointsService referralPointsService;
+
+    @Autowired
+    private ReferralDiscountRepository referralDiscountRepository;
+
+
 
     public String processSignup(SignupRequest signupRequest) {
         if (!signupRequest.isValid) {
@@ -49,6 +57,9 @@ public class SignupApplication {
         if (rowsInserted <= 0) {
             throw new RuntimeException("Failed to insert user record");
         }
+
+        if (signupRequest.isReferralExist)
+            referralDiscountRepository.createReferralDiscount(nextUserId, "DISCOUNT-" + generateCode(8), 10f);
 
         return "User signed up successfully";
     }

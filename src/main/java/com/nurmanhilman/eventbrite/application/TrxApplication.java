@@ -1,9 +1,7 @@
 package com.nurmanhilman.eventbrite.application;
 
 import com.nurmanhilman.eventbrite.entities.*;
-import com.nurmanhilman.eventbrite.repositories.PromotionRepository;
-import com.nurmanhilman.eventbrite.repositories.TicketRepository;
-import com.nurmanhilman.eventbrite.repositories.TrxPromoRepository;
+import com.nurmanhilman.eventbrite.repositories.*;
 import com.nurmanhilman.eventbrite.requests.TrxRequest;
 import com.nurmanhilman.eventbrite.service.PromotionService;
 import com.nurmanhilman.eventbrite.service.ReferralPointsService;
@@ -20,7 +18,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
-import com.nurmanhilman.eventbrite.repositories.EventRepository;
 
 import static com.nurmanhilman.eventbrite.util.AlphaNumericGenerator.generateCode;
 
@@ -50,6 +47,9 @@ public class TrxApplication {
 
     @Autowired
     private TicketRepository ticketRepository;
+
+    @Autowired
+    private ReferralDiscountRepository referralDiscountRepository;
 
     //BigDecimal discountedPrice = transaction.getTotalPrice().subtract(promotion.getPriceCut());
     //transaction.setTotalPrice(discountedPrice);
@@ -96,6 +96,12 @@ public class TrxApplication {
         }
 
         PromotionEntity promotionEntity = new PromotionEntity();
+        ReferralDiscountEntity referralDiscountEntity = new ReferralDiscountEntity();
+
+        // only use one promo code
+        if (trxRequest.isExistPromoCode && trxRequest.isExistReferralDiscount) {
+            throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Cannot use Promo and Referral discount code together");
+        }
 
         // Check if Promocode Exist
         if (trxRequest.isExistPromoCode) {
@@ -104,13 +110,25 @@ public class TrxApplication {
                 throw new CustomResponseStatusException(HttpStatus.NOT_FOUND, "Promo code " + trxRequest.promoCode + " is not found");
             }
             promotionEntity = optionalPromotionEntity.get();
+
+            // promo code event should equal to transaction event
+            if (trxRequest.eventId != promotionEntity.getEventId()) {
+                throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Promo code "
+                        + trxRequest.promoCode + " is for event " + promotionEntity.getEventId());
+            }
+        } else if (trxRequest.isExistReferralDiscount) {
+            if (!referralDiscountRepository.isExistReferralDiscount(trxRequest.referralDiscount)) {
+                throw new CustomResponseStatusException(HttpStatus.NOT_FOUND, "Referral Discount code " + trxRequest.referralDiscount + " is not found");
+            }
+            referralDiscountEntity = referralDiscountRepository.getReferralDiscountByCode(trxRequest.referralDiscount);
+
+            // referral discount code user id should equal to transaction user id
+
+            if (userEntity.getUserId() != referralDiscountEntity.getUserId()) {
+                throw new CustomResponseStatusException(HttpStatus.CONFLICT, "This referral discount code is not belong to this user");
+            }
         }
 
-        // promo code event should equal to transaction event
-        if (trxRequest.eventId != promotionEntity.getEventId()) {
-            throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Promo code "
-                    + trxRequest.promoCode + " is for event " + promotionEntity.getEventId());
-        }
 
         int referralPoints = 0;
 
@@ -150,6 +168,10 @@ public class TrxApplication {
                 priceCut = priceCut.multiply(totalPrice).divide(BigDecimal.valueOf(100.0));
             }
             totalPrice = totalPrice.subtract(priceCut);
+        } else if (trxRequest.isExistReferralDiscount) {
+            BigDecimal priceCut = BigDecimal.valueOf(referralDiscountEntity.getPercentage());
+            priceCut = priceCut.multiply(totalPrice).divide(BigDecimal.valueOf(100.0));
+            totalPrice = totalPrice.subtract(priceCut);
         }
 
         // Saving transaction
@@ -173,6 +195,8 @@ public class TrxApplication {
             trxPromoEntity.setTrxId(savedTransaction.getTrxId());
             trxPromoEntity.setPromoId(promotionEntity.getPromoId());
             trxPromoRepository.save(trxPromoEntity);
+        } else if (trxRequest.isExistReferralDiscount) {
+            referralDiscountRepository.useReferralDiscount(referralDiscountEntity, savedTransaction.getTrxId());
         }
 
         for (int loop = 0; loop < trxRequest.ticketAmount; loop++) {

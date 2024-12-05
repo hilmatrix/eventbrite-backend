@@ -10,10 +10,12 @@ public class TrxRequest extends TemplateRequest {
     public Long eventId;
     public Integer ticketAmount;
     public String promoCode;
+    public String referralDiscount;
     public Integer referralPointsUsed;
 
     public boolean isExistPromoCode;
     public boolean isExistReferralPointsUsed;
+    public boolean isExistReferralDiscount;
 
     public TrxRequest(Map<String, Object> trxData) {
         super();
@@ -40,6 +42,11 @@ public class TrxRequest extends TemplateRequest {
         if (!isEmpty(getField("referralPointsUsed"))) {
             referralPointsUsed = Integer.parseInt(getField("referralPointsUsed"));
             isExistReferralPointsUsed = true;
+        }
+
+        if (!isEmpty(getField("referralDiscount"))) {
+            referralDiscount = getField("referralDiscount");
+            isExistReferralDiscount = true;
         }
 
     }
