@@ -18,9 +18,8 @@ public class PromotionEntity {
     @Column(name = "promo_id")
     private Long promoId;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id", nullable = false)
-    private EventEntity eventId;
+    @Column(name = "event_id", nullable = false)
+    private Long eventId;
 
     @Column(name = "promo_code", nullable = false)
     private String promoCode;
@@ -48,5 +47,8 @@ public class PromotionEntity {
 
     @Column(name = "deleted_at")
     private Instant deletedAt;
+
+    @Column(name = "is_percentage", nullable = false)
+    private Boolean isPercentage;
     // Getters and Setters
 }

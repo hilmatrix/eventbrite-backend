@@ -2,7 +2,7 @@ package com.nurmanhilman.eventbrite.util;
 
 import java.security.SecureRandom;
 
-public class ReferralCodeGenerator {
+public class AlphaNumericGenerator {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom random = new SecureRandom();
 
