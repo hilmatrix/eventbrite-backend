@@ -1,19 +1,29 @@
 package com.nurmanhilman.eventbrite.controller;
 
 import com.nurmanhilman.eventbrite.entities.TrxEntity;
+import com.nurmanhilman.eventbrite.entities.UserEntity;
+import com.nurmanhilman.eventbrite.repositories.TrxRepository;
 import com.nurmanhilman.eventbrite.service.TrxService;
 import com.nurmanhilman.eventbrite.application.TrxApplication;
+import com.nurmanhilman.eventbrite.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
 public class TrxController {
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TrxRepository trxRepository;
 
     private final TrxService trxService;
     private final TrxApplication trxApplication;
@@ -24,10 +34,14 @@ public class TrxController {
         this.trxApplication = trxApplication;
     }
 
+
     @GetMapping
-    public List<TrxEntity> getAllTransactions() {
-        return trxService.getAllTransactions();
+    public ResponseEntity<?> getAllTransactions(@RequestHeader("Authorization") String authorizationHeader) {
+        UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+        List<TrxEntity> transactions = trxRepository.findByUserId(userEntity.getUserId());
+        return ResponseEntity.ok(transactions.isEmpty() ? Collections.emptyList() : transactions);
     }
+
 
     @GetMapping("/{trxId}")
     public ResponseEntity<TrxEntity> getTransactionById(@RequestHeader("Authorization") String authorizationHeader,

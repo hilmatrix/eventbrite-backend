@@ -1,5 +1,6 @@
 package com.nurmanhilman.eventbrite.controller;
 
+import com.nurmanhilman.eventbrite.service.ReferralPointsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,6 +23,9 @@ public class ReferralPointController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private ReferralPointsService referralPointsService;
+
     public ReferralPointController(JwtDecoder jwtDecoder, JdbcTemplate jdbcTemplate) {
         this.jwtDecoder = jwtDecoder;
         this.jdbcTemplate = jdbcTemplate;
@@ -43,10 +47,7 @@ public class ReferralPointController {
 
         Long id = getIdFromEmail(email);
 
-        Long sum = jdbcTemplate.queryForObject(referralCodeCheck, new Object[]{id}, Long.class);
-        if (sum == null)
-            return  0L;
-        return sum;
+        return (long) referralPointsService.getPoints(id);
     }
 
     @GetMapping
