@@ -2,6 +2,7 @@ package com.nurmanhilman.eventbrite.application;
 
 import com.nurmanhilman.eventbrite.entities.*;
 import com.nurmanhilman.eventbrite.repositories.PromotionRepository;
+import com.nurmanhilman.eventbrite.repositories.TicketRepository;
 import com.nurmanhilman.eventbrite.repositories.TrxPromoRepository;
 import com.nurmanhilman.eventbrite.requests.TrxRequest;
 import com.nurmanhilman.eventbrite.service.PromotionService;
@@ -20,6 +21,8 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import com.nurmanhilman.eventbrite.repositories.EventRepository;
+
+import static com.nurmanhilman.eventbrite.util.AlphaNumericGenerator.generateCode;
 
 @Component
 public class TrxApplication {
@@ -44,6 +47,9 @@ public class TrxApplication {
 
     @Autowired
     private ReferralPointsService referralPointsService;
+
+    @Autowired
+    private TicketRepository ticketRepository;
 
     //BigDecimal discountedPrice = transaction.getTotalPrice().subtract(promotion.getPriceCut());
     //transaction.setTotalPrice(discountedPrice);
@@ -129,7 +135,7 @@ public class TrxApplication {
         BigDecimal totalPrice = BigDecimal.valueOf(eventEntity.get().getPrice() * trxRequest.ticketAmount);
 
         // total referral points should now greater than total price
-        if (referralPoints > totalPrice) {
+        if (totalPrice.compareTo(BigDecimal.valueOf(referralPoints)) < 0) {
             throw new CustomResponseStatusException(HttpStatus.CONFLICT, "ReferralPoints should not greater than total price");
         }
 
@@ -167,6 +173,14 @@ public class TrxApplication {
             trxPromoEntity.setTrxId(savedTransaction.getTrxId());
             trxPromoEntity.setPromoId(promotionEntity.getPromoId());
             trxPromoRepository.save(trxPromoEntity);
+        }
+
+        for (int loop = 0; loop < trxRequest.ticketAmount; loop++) {
+            ticketRepository.createTicket(
+                    userEntity.getUserId(),
+                    eventEntity.get().getEventId(),
+                    savedTransaction.getTrxId(),
+                    "TICKET-"+generateCode(8));
         }
 
         return savedTransaction;
