@@ -55,6 +55,11 @@ public class TrxApplication {
     //transaction.setTotalPrice(discountedPrice);
 
     public TrxEntity processTransaction(String authorizationHeader, Map<String, Object> trxData) {
+        return processTransaction(authorizationHeader, trxData, false);
+    }
+
+
+    public TrxEntity processTransaction(String authorizationHeader, Map<String, Object> trxData, boolean preview) {
         UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
 
         // Don't allow organizer for  transaction
@@ -182,6 +187,9 @@ public class TrxApplication {
         transaction.setTotalPrice(totalPrice);
         transaction.setCreatedAt(Instant.now());
         transaction.setUpdatedAt(Instant.now());
+
+        if (preview)
+            return transaction;
 
         TrxEntity savedTransaction = trxService.saveTransaction(transaction);
 

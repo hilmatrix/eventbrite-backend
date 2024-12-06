@@ -55,14 +55,15 @@ public class TrxController {
     public ResponseEntity<?> createTransaction(@RequestHeader("Authorization") String authorizationHeader,
                                                        @RequestBody Map<String, Object> trxData) {
         ResponseEntity<TrxEntity> response;
-        try {
-            response = ResponseEntity.ok(trxApplication.processTransaction(authorizationHeader, trxData));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+        response = ResponseEntity.ok(trxApplication.processTransaction(authorizationHeader, trxData));
+        return response;
+    }
 
+    @PostMapping("/preview")
+    public ResponseEntity<?> createTransactionPreview(@RequestHeader("Authorization") String authorizationHeader,
+                                               @RequestBody Map<String, Object> trxData) {
+        ResponseEntity<TrxEntity> response;
+        response = ResponseEntity.ok(trxApplication.processTransaction(authorizationHeader, trxData, true));
         return response;
     }
 

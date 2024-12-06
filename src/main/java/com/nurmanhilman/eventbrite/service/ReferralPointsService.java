@@ -1,5 +1,7 @@
 package com.nurmanhilman.eventbrite.service;
 
+import com.nurmanhilman.eventbrite.entities.ReferralPointDetailEntity;
+import com.nurmanhilman.eventbrite.entities.ReferralPointDetailRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -8,8 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static com.nurmanhilman.eventbrite.util.DatabaseHelper.getNextId;
 
 @Service
 public class ReferralPointsService {
@@ -99,5 +99,18 @@ public class ReferralPointsService {
     private Long getNextId(JdbcTemplate jdbcTemplate, String tableName, String columnName) {
         String sql = String.format("SELECT COALESCE(MAX(%s), 0) + 1 FROM %s", columnName, tableName);
         return jdbcTemplate.queryForObject(sql, Long.class);
+    }
+
+    public List<ReferralPointDetailEntity> getPointsDetails(Long userId) {
+        String sql = """
+        SELECT points_earned, created_at, deleted_at
+        FROM referral_points
+        WHERE owner_user_id = ?
+        ORDER BY 
+            CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END, -- Deleted records last
+            created_at DESC -- Newest first within each group
+    """;
+
+        return jdbcTemplate.query(sql, new Object[]{userId}, new ReferralPointDetailRowMapper());
     }
 }
