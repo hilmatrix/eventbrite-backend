@@ -20,9 +20,9 @@ public class AuthController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            Map<String, String> tokenResponse = authApplication.login(loginRequest);
+            Map<String, Object> tokenResponse = authApplication.login(loginRequest);
             return ResponseEntity.ok(tokenResponse);
         } catch (IllegalArgumentException e) {
             Map<String, String> response = Map.of("result", e.getMessage());

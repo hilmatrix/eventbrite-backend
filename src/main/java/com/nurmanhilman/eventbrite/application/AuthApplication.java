@@ -1,5 +1,7 @@
 package com.nurmanhilman.eventbrite.application;
 
+import com.nurmanhilman.eventbrite.entities.UserEntity;
+import com.nurmanhilman.eventbrite.repositories.UserRepository;
 import com.nurmanhilman.eventbrite.requests.LoginRequest;
 import com.nurmanhilman.eventbrite.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ public class AuthApplication {
     private final UserService userService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     public AuthApplication(JwtEncoder jwtEncoder, JdbcTemplate jdbcTemplate, PasswordEncoder passwordEncoder, UserService userService) {
         this.jwtEncoder = jwtEncoder;
         this.jdbcTemplate = jdbcTemplate;
@@ -31,11 +36,11 @@ public class AuthApplication {
         this.userService = userService;
     }
 
-    public Map<String, String> login(LoginRequest loginRequest) {
-        String sql = "SELECT password_hash FROM users WHERE email = ?";
+    public Map<String, Object> login(LoginRequest loginRequest) {
+        String sql = "SELECT password_hash,is_event_organizer FROM users WHERE email = ?";
         try {
-            Map<String, Object> result = jdbcTemplate.queryForMap(sql, loginRequest.getEmail());
-            String storedPasswordHash = (String) result.get("password_hash");
+            UserEntity userEntity = userRepository.findByEmail(loginRequest.getEmail()).get();
+            String storedPasswordHash = userEntity.getPasswordHash();
 
             if (passwordEncoder.matches(loginRequest.getPassword(), storedPasswordHash)) {
                 JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -47,8 +52,9 @@ public class AuthApplication {
 
                 Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(claims));
 
-                Map<String, String> response = new HashMap<>();
+                Map<String, Object> response = new HashMap<>();
                 response.put("token", jwt.getTokenValue());
+                response.put("user", userEntity);
                 return response;
             } else {
                 throw new IllegalArgumentException("Wrong password");

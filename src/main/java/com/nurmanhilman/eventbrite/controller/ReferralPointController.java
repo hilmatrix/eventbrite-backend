@@ -48,6 +48,8 @@ public class ReferralPointController {
         try {
             UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
 
+            referralPointsService.updateExpiredPoints(userEntity.getUserId());
+
             return ResponseEntity.status(200).body(referralPointsService.getPointsDetails(userEntity.getUserId()));
         } catch (Exception e) {
             // If decoding fails, return an invalid token message
