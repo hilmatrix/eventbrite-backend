@@ -1,6 +1,7 @@
 package com.nurmanhilman.eventbrite.controller;
 
 import com.nurmanhilman.eventbrite.application.SignupApplication;
+import com.nurmanhilman.eventbrite.exception.CustomResponseStatusException;
 import com.nurmanhilman.eventbrite.requests.SignupRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,15 +23,11 @@ public class SignupController {
             SignupRequest signupRequest = new SignupRequest(signupData);
             String message = signupApplication.processSignup(signupRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(message);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (CustomResponseStatusException e) {
+            return e.generateResponse();
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
+            return new CustomResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred").generateResponse();
         }
     }
 }

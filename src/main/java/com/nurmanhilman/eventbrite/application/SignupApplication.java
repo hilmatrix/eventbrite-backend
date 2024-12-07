@@ -1,10 +1,12 @@
 package com.nurmanhilman.eventbrite.application;
 
+import com.nurmanhilman.eventbrite.exception.CustomResponseStatusException;
 import com.nurmanhilman.eventbrite.repositories.ReferralDiscountRepository;
 import com.nurmanhilman.eventbrite.requests.SignupRequest;
 import com.nurmanhilman.eventbrite.service.ReferralPointsService;
 import com.nurmanhilman.eventbrite.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -29,15 +31,15 @@ public class SignupApplication {
 
     public String processSignup(SignupRequest signupRequest) {
         if (!signupRequest.isValid) {
-            throw new IllegalArgumentException("Invalid signup request: " + signupRequest.errorList);
+            throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Invalid signup request: " + signupRequest.errorList);
         }
 
         if (userService.isEmailExist(signupRequest.email)) {
-            throw new IllegalStateException("Email " + signupRequest.email + " already exists");
+            throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Email " + signupRequest.email + " already exists");
         }
 
         if (signupRequest.isReferralExist && !userService.isReferralCodeExist(signupRequest.referral)) {
-            throw new IllegalStateException("Referral " + signupRequest.referral + " is not found");
+            throw new CustomResponseStatusException(HttpStatus.NOT_FOUND, "Referral " + signupRequest.referral + " is not found");
         }
 
         // Encode the password
