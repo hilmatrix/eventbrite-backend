@@ -2,6 +2,7 @@ package com.nurmanhilman.eventbrite.controller;
 
 import com.nurmanhilman.eventbrite.entities.TrxEntity;
 import com.nurmanhilman.eventbrite.entities.UserEntity;
+import com.nurmanhilman.eventbrite.exception.CustomResponseStatusException;
 import com.nurmanhilman.eventbrite.repositories.TrxRepository;
 import com.nurmanhilman.eventbrite.service.TrxService;
 import com.nurmanhilman.eventbrite.application.TrxApplication;
@@ -55,7 +56,14 @@ public class TrxController {
     public ResponseEntity<?> createTransaction(@RequestHeader("Authorization") String authorizationHeader,
                                                        @RequestBody Map<String, Object> trxData) {
         ResponseEntity<TrxEntity> response;
-        response = ResponseEntity.ok(trxApplication.processTransaction(authorizationHeader, trxData));
+        try {
+            response = ResponseEntity.ok(trxApplication.processTransaction(authorizationHeader, trxData));
+        } catch (CustomResponseStatusException e) {
+            return e.generateResponse();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new CustomResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred").generateResponse();
+        }
         return response;
     }
 
