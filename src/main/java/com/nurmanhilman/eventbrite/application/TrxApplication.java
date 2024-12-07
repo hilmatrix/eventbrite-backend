@@ -135,16 +135,16 @@ public class TrxApplication {
         }
 
 
-        int referralPoints = 0;
+        int maxReferralPoints = 0;
 
         // ReferralPointsUsed should less than available
         if (trxRequest.isExistReferralPointsUsed) {
             referralPointsService.updateExpiredPoints(userEntity.getUserId());
 
-            referralPoints = referralPointsService.getPoints(userEntity.getUserId());
+            maxReferralPoints = referralPointsService.getPoints(userEntity.getUserId());
 
-            if (trxRequest.referralPointsUsed > referralPoints) {
-                throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Not enough referral points. ReferralPoints = " + referralPoints);
+            if (trxRequest.referralPointsUsed > maxReferralPoints) {
+                throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Not enough referral points. ReferralPoints = " + maxReferralPoints);
             }
 
             // for now, ReferralPointsUsed should be multiple of 10k
@@ -153,17 +153,23 @@ public class TrxApplication {
             }
         }
 
-        int referralPoints10k = referralPoints / 10000;
+
+
+         int referralPoints10k = 0;
+
+        if (trxRequest.isExistReferralPointsUsed)
+            referralPoints10k = trxRequest.referralPointsUsed / 10000;
 
         BigDecimal totalPrice = BigDecimal.valueOf(eventEntity.get().getPrice() * trxRequest.ticketAmount);
 
         // total referral points should now greater than total price
-        if (totalPrice.compareTo(BigDecimal.valueOf(referralPoints)) < 0) {
+        if (trxRequest.isExistReferralPointsUsed)
+            if (totalPrice.compareTo(BigDecimal.valueOf(trxRequest.referralPointsUsed)) < 0) {
             throw new CustomResponseStatusException(HttpStatus.CONFLICT, "ReferralPoints should not greater than total price");
-        }
+            }
 
         if (trxRequest.isExistReferralPointsUsed) {
-            totalPrice = totalPrice.subtract(BigDecimal.valueOf(referralPoints));
+            totalPrice = totalPrice.subtract(BigDecimal.valueOf(trxRequest.referralPointsUsed));
         }
 
         // processing promo code
@@ -194,7 +200,7 @@ public class TrxApplication {
         TrxEntity savedTransaction = trxService.saveTransaction(transaction);
 
         if (trxRequest.isExistReferralPointsUsed) {
-            referralPointsService.usePoints10k(userEntity.getUserId(), 2);
+            referralPointsService.usePoints10k(userEntity.getUserId(), referralPoints10k);
         }
 
         // Create record of used promo code
