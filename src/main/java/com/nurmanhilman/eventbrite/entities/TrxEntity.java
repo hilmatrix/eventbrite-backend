@@ -16,13 +16,11 @@ public class TrxEntity {
     @Column(name = "trx_id")
     private Long trxId;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id" , nullable= false)
-    private EventEntity eventId;
+    @Column(name = "event_id" , nullable= false)
+    private Long eventId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id" , nullable= false)
-    private UserEntity user;
+    @Column(name = "user_id" , nullable= false)
+    private Long userId;
 
     @Column(name = "ticket_amount" ,nullable = false)
     private int ticketAmount;

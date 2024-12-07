@@ -1,5 +1,8 @@
 package com.nurmanhilman.eventbrite.controller;
 
+import com.nurmanhilman.eventbrite.entities.UserEntity;
+import com.nurmanhilman.eventbrite.service.ReferralPointsService;
+import com.nurmanhilman.eventbrite.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,46 +20,37 @@ import java.util.Map;
 @RequestMapping("/api/v1/referral-points")
 public class ReferralPointController {
     @Autowired
-    private final JwtDecoder jwtDecoder;
-
-    @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public ReferralPointController(JwtDecoder jwtDecoder, JdbcTemplate jdbcTemplate) {
-        this.jwtDecoder = jwtDecoder;
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Autowired
+    private ReferralPointsService referralPointsService;
 
-    public String getEmailFromJwt(String authorizationHeader) {
-        String token = authorizationHeader.replace("Bearer ", "");
-        Jwt jwt = jwtDecoder.decode(token);
-        return jwt.getSubject();
-    }
-
-    public Long getIdFromEmail(String email) {
-        String referralCodeCheck = "SELECT user_id FROM users WHERE email = ?";
-        return jdbcTemplate.queryForObject(referralCodeCheck, new Object[]{email}, Long.class);
-    }
-
-    public Long getReferralPointsFromDb(String email) {
-        String referralCodeCheck = "SELECT SUM(points_earned) FROM referral_points WHERE owner_user_id = ?";
-
-        Long id = getIdFromEmail(email);
-
-        Long sum = jdbcTemplate.queryForObject(referralCodeCheck, new Object[]{id}, Long.class);
-        if (sum == null)
-            return  0L;
-        return sum;
-    }
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public ResponseEntity<?> getReferralPoints(@RequestHeader("Authorization") String authorizationHeader) {
         try {
-            String email = getEmailFromJwt(authorizationHeader);
+            UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
 
             Map<String, Object> result =  new HashMap<>();
-            result.put("referralPoints", getReferralPointsFromDb(email));
+            result.put("referralPoints", referralPointsService.getPoints(userEntity.getUserId()));
             return ResponseEntity.status(200).body(result);
+        } catch (Exception e) {
+            // If decoding fails, return an invalid token message
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("User not found");
+        }
+    }
+
+    @GetMapping("/details")
+    public ResponseEntity<?> getReferralPointsDetails(@RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+
+            referralPointsService.updateExpiredPoints(userEntity.getUserId());
+
+            return ResponseEntity.status(200).body(referralPointsService.getPointsDetails(userEntity.getUserId()));
         } catch (Exception e) {
             // If decoding fails, return an invalid token message
             e.printStackTrace();

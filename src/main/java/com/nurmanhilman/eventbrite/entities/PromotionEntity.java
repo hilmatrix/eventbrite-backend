@@ -1,6 +1,5 @@
 package com.nurmanhilman.eventbrite.entities;
 
-import com.nurmanhilman.eventbrite.entities.EventEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -8,7 +7,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -20,12 +18,11 @@ public class PromotionEntity {
     @Column(name = "promo_id")
     private Long promoId;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id", nullable = false)
-    private EventEntity eventId;
+    @Column(name = "event_id", nullable = false)
+    private Long eventId;
 
-    @Column(name = "referral_code", nullable = false)
-    private String referralCode;
+    @Column(name = "promo_code", nullable = false)
+    private String promoCode;
 
     @Column(name = "price_cut", nullable = false)
     private BigDecimal priceCut;
@@ -50,5 +47,8 @@ public class PromotionEntity {
 
     @Column(name = "deleted_at")
     private Instant deletedAt;
+
+    @Column(name = "is_percentage", nullable = false)
+    private Boolean isPercentage;
     // Getters and Setters
 }

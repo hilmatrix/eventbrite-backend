@@ -1,70 +1,48 @@
 package com.nurmanhilman.eventbrite.controller;
 
+import com.nurmanhilman.eventbrite.application.AuthApplication;
 import com.nurmanhilman.eventbrite.requests.LoginRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/login")
 public class AuthController {
 
-    private final JwtEncoder jwtEncoder;
+    private final AuthApplication authApplication;
 
-    public AuthController(JwtEncoder jwtEncoder) {
-        this.jwtEncoder = jwtEncoder;
+    @Autowired
+    public AuthController(AuthApplication authApplication) {
+        this.authApplication = authApplication;
     }
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;  // JDBC template for direct DB interaction
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;  // To check password hash
-
     @PostMapping
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
-        // Query to find the user by email
-        String sql = "SELECT password_hash FROM users WHERE email = ?";
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            // Execute the query
-            Map<String, Object> result = jdbcTemplate.queryForMap(sql, loginRequest.getEmail());
+            Map<String, Object> tokenResponse = authApplication.login(loginRequest);
+            return ResponseEntity.ok(tokenResponse);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> response = Map.of("result", e.getMessage());
+            return ResponseEntity.status(401).body(response);
+        } catch (RuntimeException e) {
+            Map<String, String> response = Map.of("result", e.getMessage());
+            return ResponseEntity.status(404).body(response);
+        }
+    }
 
-            // If email found, verify password
-            String storedPasswordHash = (String) result.get("password_hash");
-            if (passwordEncoder.matches(loginRequest.getPassword(), storedPasswordHash)) {
-                JwtClaimsSet claims = JwtClaimsSet.builder()
-                        .issuer("your-issuer")  // You can set your desired issuer here
-                        .subject(loginRequest.getEmail()) // User's email as the subject
-                        .issuedAt(Instant.now()) // Set the issued time
-                        .expiresAt(Instant.now().plusSeconds(3600)) // Set the expiration time (e.g., 1 hour)
-                        .build();
-
-                Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(claims));
-
-                // Return JSON response with the token
-                Map<String, String> response = new HashMap<>();
-                response.put("token", jwt.getTokenValue());
-                return ResponseEntity.ok(response);
-            } else {
-                // Return JSON response with error message
-                Map<String, String> response = new HashMap<>();
-                response.put("result", "wrong password");
-                return ResponseEntity.status(401).body(response);
-            }
-        } catch (Exception e) {
-            // If email not found in database
-            Map<String, String> response = new HashMap<>();
-            response.put("result", "user with email " + loginRequest.getEmail() + " does not exist");
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody LoginRequest loginRequest) {
+        try {
+            Map<String, String> tokenResponse = authApplication.resetPassword(loginRequest);
+            return ResponseEntity.ok(tokenResponse);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> response = Map.of("result", e.getMessage());
+            return ResponseEntity.status(401).body(response);
+        } catch (RuntimeException e) {
+            Map<String, String> response = Map.of("result", e.getMessage());
             return ResponseEntity.status(404).body(response);
         }
     }
