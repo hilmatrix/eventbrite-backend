@@ -61,11 +61,11 @@ public class EventController {
     }
 
 //    // Get a list of all events
-//    @GetMapping
-//    public ResponseEntity<List<EventEntity>> getAllEvents() {
-//        List<EventEntity> events = eventService.getAllEvents();
-//        return ResponseEntity.ok(events);
-//    }
+    @GetMapping
+    public ResponseEntity<List<EventEntity>> getAllEvents() {
+        List<EventEntity> events = eventService.getAllEvents();
+        return ResponseEntity.ok(events);
+    }
 //
 //    // get a list of event by filter
 //    @GetMapping("/filter")
@@ -77,12 +77,12 @@ public class EventController {
 //        List<EventEntity> events = eventService.filterAndSearchEvents(name, location, description);
 //        return ResponseEntity.ok(events);
 //    }
-    // get a list for event filter
-    @GetMapping
-    public List<EventEntity> findAll(@RequestParam(required = false) String name,
-                                     @RequestParam(required = false) String location) {
-        return eventService.findAll(name, location);
-    }
+//    // get a list for event filter
+//    @GetMapping
+//    public List<EventEntity> findAll(@RequestParam(required = false) String name,
+//                                     @RequestParam(required = false) String location) {
+//        return eventService.findAll(name, location);
+//    }
 
     // Get event by ID
     @GetMapping("/{id}")

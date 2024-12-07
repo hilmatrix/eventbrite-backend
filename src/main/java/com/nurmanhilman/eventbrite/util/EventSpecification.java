@@ -4,9 +4,9 @@ import com.nurmanhilman.eventbrite.entities.EventEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 public class EventSpecification {
-    private EventSpecification() {}
-
-    public static Specification<EventEntity> name(String name) {
-        
-    }
+//    private EventSpecification() {}
+//
+//    public static Specification<EventEntity> name(String name) {
+//        return ((root, query, criteriaBuilder) -> builder.like
+//    }
 }
