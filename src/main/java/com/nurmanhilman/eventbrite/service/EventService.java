@@ -18,12 +18,12 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
-    public static List<EventEntity> findAll(String name, String location) {
-    }
+//    public static List<EventEntity> findAll(String name, String location) {
+//    }
 
-    public List<EventEntity> filterAndSearchEvents(String name, String location, String description) {
-        return eventRepository.filterAndSearchEvents(name, location, description);
-    }
+//    public List<EventEntity> filterAndSearchEvents(String name, String location, String description) {
+//        return eventRepository.filterAndSearchEvents(name, location, description);
+//    }
 
     public EventEntity createEvent(EventEntity event) {
         return eventRepository.save(event);
