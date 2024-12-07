@@ -18,6 +18,9 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
+    public static List<EventEntity> findAll(String name, String location) {
+    }
+
     public List<EventEntity> filterAndSearchEvents(String name, String location, String description) {
         return eventRepository.filterAndSearchEvents(name, location, description);
     }
