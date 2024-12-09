@@ -1,16 +1,43 @@
 package com.nurmanhilman.eventbrite.entities;
 
+import jakarta.persistence.Entity;
+
 import java.time.LocalDateTime;
+import lombok.Data;
+import jakarta.persistence.*;
+
+@Data
+@Entity
+@Table(name = "tickets")
 
 public class TicketEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
+
+    @Column(name = "user_id", nullable = false)
     private Long userId;
+
+    @Column(name = "event_id", nullable = false)
     private Long eventId;
+
+    @Column(name = "trx_id", nullable = false)
     private Long trxId;
+
+    @Column(name = "code", nullable = false)
     private String code;
+
+    @Column(name = "is_used", nullable = false)
     private Boolean isUsed;
+
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at", nullable = false)
     private LocalDateTime deletedAt;
 
     public Long getId() {

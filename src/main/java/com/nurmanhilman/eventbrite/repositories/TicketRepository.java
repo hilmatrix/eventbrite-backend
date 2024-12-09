@@ -61,4 +61,18 @@ public class TicketRepository {
             }
         });
     }
+
+    public List<TicketEntity> findAllTicketsByOrganizerId(Long organizerId) {
+        String sql = "SELECT t.* FROM tickets t " +
+                "JOIN events e ON t.event_id = e.event_id " +
+                "WHERE e.user_id = ?";
+
+        return jdbcTemplate.query(sql, new Object[]{organizerId}, (rs, rowNum) -> {
+            TicketEntity ticket = new TicketEntity();
+            ticket.setId(rs.getLong("id"));
+            ticket.setEventId(rs.getLong("event_id"));
+            // Map other fields as necessary
+            return ticket;
+        });
+    }
 }
