@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,5 +47,14 @@ public class TrxService {
 
         Integer totalTickets = jdbcTemplate.queryForObject(sql, Integer.class, eventId);
         return totalTickets != null ? totalTickets : 0; // Return 0 if no transactions are found
+    }
+
+    public BigDecimal getTotalTransactionPriceByOrganizerId(Long organizerId) {
+        String sql = "SELECT COALESCE(SUM(t.total_price), 0) AS total_price " +
+                "FROM trx t " +
+                "JOIN events e ON t.event_id = e.event_id " +
+                "WHERE e.user_id = ?";
+
+        return jdbcTemplate.queryForObject(sql, new Object[]{organizerId}, BigDecimal.class);
     }
 }

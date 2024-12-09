@@ -1,6 +1,8 @@
 package com.nurmanhilman.eventbrite.repositories;
 
 import com.nurmanhilman.eventbrite.entities.EventEntity;
+import com.nurmanhilman.eventbrite.entities.TicketEntity;
+import com.nurmanhilman.eventbrite.entities.TrxEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -21,5 +23,11 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
 //            @Param("location") String location,
 //            @Param("description") String description);
 
+    List<EventEntity> findByUserId(Long userId);
+
+    @Query("SELECT t FROM TicketEntity t " +
+            "JOIN EventEntity e ON t.eventId = e.eventId " +
+            "WHERE e.userId = :userId")
+    List<TicketEntity> findAllTicketsByUserId(@Param("userId") Long userId);
 }
 

@@ -17,9 +17,8 @@ public class EventEntity {
     @Column(name = "event_id")
     private Long eventId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity userId;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
