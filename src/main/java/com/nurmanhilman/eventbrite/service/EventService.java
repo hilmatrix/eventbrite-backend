@@ -3,7 +3,10 @@ package com.nurmanhilman.eventbrite.service;
 import com.nurmanhilman.eventbrite.entities.EventEntity;
 import com.nurmanhilman.eventbrite.repositories.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,12 +24,17 @@ public class EventService {
 //    public static List<EventEntity> findAll(String name, String location) {
 //    }
 
-//    public List<EventEntity> filterAndSearchEvents(String name, String location, String description) {
-//        return eventRepository.filterAndSearchEvents(name, location, description);
-//    }
+    public List<EventEntity> filterAndSearchEvents(String name, String location, String description) {
+        return eventRepository.filterAndSearchEvents(name, location, description);
+    }
 
     public EventEntity createEvent(EventEntity event) {
         return eventRepository.save(event);
+    }
+
+    public List<EventEntity> findLatestEvents(int resultPerPage, int page){
+        Pageable pageable = PageRequest.of(page, resultPerPage);
+        return eventRepository.findLatestEvents(pageable);
     }
 
     public List<EventEntity> getAllEvents() {

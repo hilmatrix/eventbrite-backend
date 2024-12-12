@@ -4,6 +4,7 @@ import com.nurmanhilman.eventbrite.entities.EventEntity;
 import com.nurmanhilman.eventbrite.entities.UserEntity;
 import com.nurmanhilman.eventbrite.repositories.UserRepository;
 import com.nurmanhilman.eventbrite.service.EventService;
+import com.nurmanhilman.eventbrite.service.UserService;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +23,14 @@ public class EventController {
     private final EventService eventService;
     private final JwtDecoder jwtDecoder;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @Autowired
-    public EventController(EventService eventService, JwtDecoder jwtDecoder, UserRepository userRepository) {
+    public EventController(EventService eventService, JwtDecoder jwtDecoder, UserRepository userRepository, UserService userService) {
         this.eventService = eventService;
         this.jwtDecoder = jwtDecoder;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     private boolean isOrganizer(String authorizationHeader) {
@@ -51,11 +54,13 @@ public class EventController {
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody EventEntity event
     ) {
-        if (!isOrganizer(authorizationHeader)) {
+        UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+        if (!userEntity.isEventOrganizer()) {
             return ResponseEntity.status(403).body("Access denied. Only organizers can create events.");
         }
         event.setCreatedAt(Instant.now());
         event.setUpdatedAt(Instant.now());
+        event.setUserId(userEntity.getUserId());
         EventEntity savedEvent = eventService.createEvent(event);
         return ResponseEntity.ok(savedEvent);
     }
@@ -68,31 +73,39 @@ public class EventController {
     }
 //
 //    // get a list of event by filter
-//    @GetMapping("/filter")
-//    public ResponseEntity<List<EventEntity>> filterAndSearchEvents(
-//            @RequestParam(value = "name", required = false) String name,
-//            @RequestParam(value = "location", required = false) String location,
-//            @RequestParam(value = "description", required = false) String description) {
-//
-//        List<EventEntity> events = eventService.filterAndSearchEvents(name, location, description);
-//        return ResponseEntity.ok(events);
-//    }
-//    // get a list for event filter
-//    @GetMapping
-//    public List<EventEntity> findAll(@RequestParam(required = false) String name,
-//                                     @RequestParam(required = false) String location) {
-//        return eventService.findAll(name, location);
-//    }
+    @GetMapping("/filter")
+    public ResponseEntity<List<EventEntity>> filterAndSearchEvents(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "location", required = false) String location,
+            @RequestParam(value = "description", required = false) String description) {
+
+        if (name == null)
+            name = "";
+        if (location == null)
+            location = "";
+        if (description == null)
+            description = "";
+        List<EventEntity> events = eventService.filterAndSearchEvents(name, location, description);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/latest/{resultPerPage}/{page}")
+    public ResponseEntity<List<EventEntity>> findLatestEvents(@PathVariable int resultPerPage,
+                                                              @PathVariable int page){
+
+        List<EventEntity> events = eventService.findLatestEvents(resultPerPage, page);
+        return ResponseEntity.ok(events);
+    }
 
     // Get event by ID
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<EventEntity> getEventById(@PathVariable Long id) {
         EventEntity event = eventService.getEventById(id);
         return ResponseEntity.ok(event);
     }
 
     // Update an event
-    @PutMapping("/{id}")
+    @PutMapping("/by-id/{id}")
     public ResponseEntity<?> updateEvent(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long id,
@@ -107,7 +120,7 @@ public class EventController {
     }
 
     // Delete an event
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/by-id/{id}")
     public ResponseEntity<?> deleteEvent(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long id
