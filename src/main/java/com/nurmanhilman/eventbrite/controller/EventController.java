@@ -2,11 +2,14 @@ package com.nurmanhilman.eventbrite.controller;
 
 import com.nurmanhilman.eventbrite.entities.EventEntity;
 import com.nurmanhilman.eventbrite.entities.UserEntity;
+import com.nurmanhilman.eventbrite.exception.CustomResponseStatusException;
 import com.nurmanhilman.eventbrite.repositories.UserRepository;
 import com.nurmanhilman.eventbrite.service.EventService;
+import com.nurmanhilman.eventbrite.service.PromotionService;
 import com.nurmanhilman.eventbrite.service.UserService;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -24,13 +27,16 @@ public class EventController {
     private final JwtDecoder jwtDecoder;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final PromotionService promotionService;
 
     @Autowired
-    public EventController(EventService eventService, JwtDecoder jwtDecoder, UserRepository userRepository, UserService userService) {
+    public EventController(EventService eventService, JwtDecoder jwtDecoder,
+                           UserRepository userRepository, UserService userService, PromotionService promotionService) {
         this.eventService = eventService;
         this.jwtDecoder = jwtDecoder;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.promotionService = promotionService;
     }
 
     private boolean isOrganizer(String authorizationHeader) {
@@ -105,7 +111,7 @@ public class EventController {
     }
 
     // Update an event
-    @PutMapping("/by-id/{id}")
+    @PutMapping("/id/{id}")
     public ResponseEntity<?> updateEvent(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long id,
@@ -120,14 +126,20 @@ public class EventController {
     }
 
     // Delete an event
-    @DeleteMapping("/by-id/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<?> deleteEvent(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long id
     ) {
-        if (!isOrganizer(authorizationHeader)) {
-            return ResponseEntity.status(403).body("Access denied. Only organizers can delete events.");
+        UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+        EventEntity eventEntity = eventService.getEventById(id);
+        if (!userEntity.isEventOrganizer()) {
+            throw new CustomResponseStatusException(HttpStatus.FORBIDDEN, "Access denied. Only organizers can update events.");
         }
+        if (userEntity.getUserId() != eventEntity.getUserId())
+            throw new CustomResponseStatusException(HttpStatus.FORBIDDEN, "This user id is not owner of the event id ");
+
+        promotionService.deleteAllByEventId(id);
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }

@@ -55,7 +55,7 @@ public class PromotionController {
         if (eventEntity.isEmpty())
             throw new CustomResponseStatusException(HttpStatus.NOT_FOUND, "Event id " + promotion.getEventId() +" is not found");
         if (eventEntity.get().getUserId() != userEntity.getUserId())
-            throw new CustomResponseStatusException(HttpStatus.CONFLICT, "This user id is not owner of the event id "+promotion.getEventId());
+            throw new CustomResponseStatusException(HttpStatus.FORBIDDEN, "This user id is not owner of the event id "+promotion.getEventId());
         promotion.setCreatedAt(Instant.now());
         promotion.setUpdatedAt(Instant.now());
         return promotionService.createPromotion(promotion);
@@ -72,7 +72,11 @@ public class PromotionController {
     }
 
     @DeleteMapping("/{promoId}")
-    public ResponseEntity<Void> deletePromotion(@PathVariable Long promoId) {
+    public ResponseEntity<Void> deletePromotion(@RequestHeader("Authorization") String authorizationHeader,
+                                                @PathVariable Long promoId) {
+        UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+        if (!promotionService.isUserOwnerOfPromotion(promoId, userEntity.getUserId()))
+            throw new CustomResponseStatusException(HttpStatus.FORBIDDEN, "This user id is not owner of the promo id "+promoId);
         promotionService.deletePromotion(promoId);
         return ResponseEntity.noContent().build();
     }
