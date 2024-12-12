@@ -119,7 +119,7 @@ public class TrxApplication {
             // promo code event should equal to transaction event
             if (trxRequest.eventId != promotionEntity.getEventId()) {
                 throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Promo code "
-                        + trxRequest.promoCode + " is for event " + promotionEntity.getEventId());
+                        + trxRequest.promoCode + " is not for this event");
             }
         } else if (trxRequest.isExistReferralDiscount) {
             if (!referralDiscountRepository.isExistReferralDiscount(trxRequest.referralDiscount)) {

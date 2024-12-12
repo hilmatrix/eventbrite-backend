@@ -18,5 +18,10 @@ public interface PromotionRepository extends JpaRepository<PromotionEntity, Long
     @Query("SELECT p FROM PromotionEntity p " +
             "WHERE p.eventId IN (SELECT e.eventId FROM EventEntity e WHERE e.userId = :userId)")
     List<PromotionEntity> findAllPromosByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM PromotionEntity p " +
+            "JOIN EventEntity e ON p.eventId = e.eventId " +
+            "WHERE p.promoId = :promoId AND e.userId = :userId")
+    Boolean isUserOwnerOfPromotion(@Param("promoId") Long promoId, @Param("userId") Long userId);
 }
 
