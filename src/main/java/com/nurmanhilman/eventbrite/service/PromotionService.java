@@ -35,6 +35,14 @@ public class PromotionService {
         return promotionRepository.save(promotion);
     }
 
+    public boolean isUserOwnerOfPromotion(Long promoId, long userId) {
+        return promotionRepository.isUserOwnerOfPromotion(promoId, userId);
+    }
+
+    public void deleteAllByEventId(Long eventId) {
+        promotionRepository.deleteAllByEventId(eventId);
+    }
+
     public PromotionEntity updatePromotion(Long promoId, PromotionEntity promotionDetails) {
         return promotionRepository.findById(promoId).map(promotion -> {
             promotion.setPromoCode(promotionDetails.getPromoCode());
