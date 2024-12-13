@@ -7,14 +7,12 @@ import com.nurmanhilman.eventbrite.entities.UserEntity;
 import com.nurmanhilman.eventbrite.repositories.EventRepository;
 import com.nurmanhilman.eventbrite.repositories.PromotionRepository;
 import com.nurmanhilman.eventbrite.repositories.TicketRepository;
+import com.nurmanhilman.eventbrite.service.EventService;
 import com.nurmanhilman.eventbrite.service.TrxService;
 import com.nurmanhilman.eventbrite.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -26,6 +24,9 @@ import java.util.Map;
 public class OrganizerController {
     @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    private EventService eventService;
 
     @Autowired
     private UserService userService;
@@ -44,6 +45,11 @@ public class OrganizerController {
         UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
         List<EventEntity> events = eventRepository.findByUserId(userEntity.getUserId());
         return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/events/{id}") public ResponseEntity<EventEntity> getEventDetailsById(@PathVariable Long id) {
+        EventEntity event = eventService.getEventById(id);
+        return ResponseEntity.ok(event);
     }
 
     @GetMapping("/promotions")
