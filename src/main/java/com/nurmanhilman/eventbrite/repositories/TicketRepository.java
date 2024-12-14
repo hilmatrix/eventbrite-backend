@@ -6,7 +6,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class TicketRepository {
@@ -74,5 +76,30 @@ public class TicketRepository {
             // Map other fields as necessary
             return ticket;
         });
+    }
+
+    public Map<String, Integer> findSoldTicketsByYear(Long organizerId, int year) {
+        String sql = "SELECT EXTRACT(MONTH FROM t.created_at) AS month, COUNT(t.id) AS ticket_count " +
+                "FROM tickets t " +
+                "JOIN events e ON t.event_id = e.event_id " +
+                "WHERE e.user_id = ? AND EXTRACT(YEAR FROM t.created_at) = ? " +
+                "GROUP BY EXTRACT(MONTH FROM t.created_at)";
+
+        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, organizerId, year);
+
+        // Initialize map with zero count for each month
+        Map<String, Integer> ticketCountsByMonth = new HashMap<>();
+        for (int i = 1; i <= 12; i++) {
+            ticketCountsByMonth.put("month_" + i, 0);
+        }
+
+        // Populate the map with actual data from the query result
+        for (Map<String, Object> row : results) {
+            int month = ((Number) row.get("month")).intValue();
+            int count = ((Number) row.get("ticket_count")).intValue();
+            ticketCountsByMonth.put("month_" + month, count);
+        }
+
+        return ticketCountsByMonth;
     }
 }

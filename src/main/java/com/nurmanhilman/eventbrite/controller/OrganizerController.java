@@ -68,6 +68,12 @@ public class OrganizerController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/tickets-sold/{year}")
+    public ResponseEntity<?> getAllTicketsSoldByYear(@RequestHeader("Authorization") String authorizationHeader, @PathVariable int year) {
+        UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+        return ResponseEntity.ok(ticketRepository.findSoldTicketsByYear(userEntity.getUserId(), year));
+    }
+
     @GetMapping("/revenue")
     public ResponseEntity<?> getAllRevenue(@RequestHeader("Authorization") String authorizationHeader) {
         UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
@@ -77,5 +83,22 @@ public class OrganizerController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/revenue/{year}")
+    public ResponseEntity<?> getAllRevenueByYear(@RequestHeader("Authorization") String authorizationHeader,
+                                           @PathVariable int year) {
+        UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+        return ResponseEntity.ok(trxService.getMonthlyTransactionPriceByOrganizerId(userEntity.getUserId(), year));
+    }
 
+    @GetMapping("/statistics/{year}")
+    public ResponseEntity<?> getStatisticsByYear(@RequestHeader("Authorization") String authorizationHeader,
+                                                 @PathVariable int year) {
+        UserEntity userEntity = userService.getUserFromJwt(authorizationHeader);
+        Map<String, Object> result = new HashMap<>();
+        result.put("tickets_sold_all_time", ticketRepository.findAllTicketsByOrganizerId(userEntity.getUserId()).size());
+        result.put("revenue_all_time", trxService.getTotalTransactionPriceByOrganizerId(userEntity.getUserId()));
+        result.put("tickets_statistic", ticketRepository.findSoldTicketsByYear(userEntity.getUserId(), year));
+        result.put("revenue_statistic", trxService.getMonthlyTransactionPriceByOrganizerId(userEntity.getUserId(), year));
+        return ResponseEntity.ok(result);
+    }
 }
