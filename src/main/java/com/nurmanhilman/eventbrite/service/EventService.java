@@ -71,5 +71,9 @@ public class EventService {
 
         eventRepository.delete(event);
     }
+
+    public boolean isEventExpired(Long eventId) {
+        return eventRepository.isEventExpired(eventId);
+    }
 }
 

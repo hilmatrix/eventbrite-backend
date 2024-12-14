@@ -35,5 +35,8 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
             "WHERE e.isActive = true " +
             "ORDER BY e.date DESC")
     List<EventEntity> findLatestEvents(Pageable pageable);
+
+    @Query("SELECT CASE WHEN (e.date < CURRENT_DATE OR (e.date = CURRENT_DATE AND e.time < CURRENT_TIME)) THEN true ELSE false END FROM EventEntity e WHERE e.eventId = :eventId")
+    boolean isEventExpired(@Param("eventId") Long eventId);
 }
 

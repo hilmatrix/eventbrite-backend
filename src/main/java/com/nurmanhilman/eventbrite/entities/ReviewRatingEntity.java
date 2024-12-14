@@ -15,9 +15,8 @@ public class ReviewRatingEntity {
     @Column(name = "review_rating_id")
     private Long reviewRatingId;
 
-    @ManyToOne
-    @JoinColumn(name = "trx_id", nullable = false)
-    private TrxEntity transactionId;
+    @Column(name = "trx_id", nullable = false)
+    private Long transactionId;
 
     @Column(name = "review", nullable = false)
     private String review;

@@ -3,6 +3,7 @@ package com.nurmanhilman.eventbrite.controller;
 import com.nurmanhilman.eventbrite.entities.EventEntity;
 import com.nurmanhilman.eventbrite.entities.UserEntity;
 import com.nurmanhilman.eventbrite.exception.CustomResponseStatusException;
+import com.nurmanhilman.eventbrite.repositories.EventRepository;
 import com.nurmanhilman.eventbrite.repositories.UserRepository;
 import com.nurmanhilman.eventbrite.service.EventService;
 import com.nurmanhilman.eventbrite.service.PromotionService;
@@ -16,7 +17,9 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -24,6 +27,7 @@ import java.util.Optional;
 public class EventController {
 
     private final EventService eventService;
+    private final EventRepository eventRepository;
     private final JwtDecoder jwtDecoder;
     private final UserRepository userRepository;
     private final UserService userService;
@@ -31,12 +35,14 @@ public class EventController {
 
     @Autowired
     public EventController(EventService eventService, JwtDecoder jwtDecoder,
-                           UserRepository userRepository, UserService userService, PromotionService promotionService) {
+                           UserRepository userRepository, UserService userService,
+                           EventRepository eventRepository, PromotionService promotionService) {
         this.eventService = eventService;
         this.jwtDecoder = jwtDecoder;
         this.userRepository = userRepository;
         this.userService = userService;
         this.promotionService = promotionService;
+        this.eventRepository = eventRepository;
     }
 
     private boolean isOrganizer(String authorizationHeader) {
@@ -142,6 +148,17 @@ public class EventController {
         promotionService.deleteAllByEventId(id);
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/is-expired/{eventId}")
+    public ResponseEntity<?> isEventExpired(@PathVariable Long eventId) {
+        Optional<EventEntity> eventEntity = eventRepository.findById(eventId);
+        if (eventEntity.isEmpty()) {
+            throw new CustomResponseStatusException(HttpStatus.NOT_FOUND, "This event id is not found ");
+        }
+        Map<String, Boolean> result = new HashMap<String, Boolean>();
+        result.put("isExpired", eventService.isEventExpired(eventId));
+        return ResponseEntity.ok(result);
     }
 }
 
