@@ -18,7 +18,7 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
             "WHERE (:name IS NULL OR LOWER(CAST(e.name AS text)) LIKE LOWER(CONCAT('%', :name, '%'))) " +
             "AND (:location IS NULL OR LOWER(CAST(e.location AS text)) LIKE LOWER(CONCAT('%', :location, '%'))) " +
             "AND (:description IS NULL OR LOWER(CAST(e.description AS text)) LIKE LOWER(CONCAT('%', :description, '%'))) " +
-            "AND e.isActive = true")
+            "AND e.isActive = true ORDER BY e.date DESC")
     List<EventEntity> filterAndSearchEvents(
             @Param("name") String name,
             @Param("location") String location,
