@@ -18,7 +18,7 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
             "WHERE (:name IS NULL OR LOWER(CAST(e.name AS text)) LIKE LOWER(CONCAT('%', :name, '%'))) " +
             "AND (:location IS NULL OR LOWER(CAST(e.location AS text)) LIKE LOWER(CONCAT('%', :location, '%'))) " +
             "AND (:description IS NULL OR LOWER(CAST(e.description AS text)) LIKE LOWER(CONCAT('%', :description, '%'))) " +
-            "AND e.isActive = true")
+            "AND e.isActive = true ORDER BY e.date DESC")
     List<EventEntity> filterAndSearchEvents(
             @Param("name") String name,
             @Param("location") String location,
@@ -35,5 +35,8 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
             "WHERE e.isActive = true " +
             "ORDER BY e.date DESC")
     List<EventEntity> findLatestEvents(Pageable pageable);
+
+    @Query("SELECT CASE WHEN (e.date < CURRENT_DATE OR (e.date = CURRENT_DATE AND e.time < CURRENT_TIME)) THEN true ELSE false END FROM EventEntity e WHERE e.eventId = :eventId")
+    boolean isEventExpired(@Param("eventId") Long eventId);
 }
 

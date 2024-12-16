@@ -80,6 +80,11 @@ public class TrxApplication {
             throw new CustomResponseStatusException(HttpStatus.NOT_FOUND, "Event with id " + trxRequest.eventId + " is not found");
         }
 
+        // event is expired
+        if (eventRepository.isEventExpired(eventEntity.get().getEventId())) {
+            throw new CustomResponseStatusException(HttpStatus.CONFLICT, "Event with id " + trxRequest.eventId + " is expired");
+        }
+
         // ticket amount should is greater than 0
         if (trxRequest.ticketAmount <= 0) {
             throw new CustomResponseStatusException(HttpStatus.BAD_REQUEST, "Ticket amount should greater than 0");
